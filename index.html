@@ -27,9 +27,8 @@
 
 </div>
 
-<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height-"810"> -->
-<!-- <source src="textures/sintel.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'> -->
-<!-- <source src="textures/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'> -->
+<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height="810"> -->
+
 </video>
 
 <script src="js/three.min.js" type="text/javascript"></script>
@@ -59,45 +58,7 @@
 <script src="js/postprocessing/TexturePass.js"></script>
 <script src="js/postprocessing/ShaderPass.js"></script>
 <script src="js/postprocessing/MaskPass.js"></script>
-<script>
-    // var container, stats;
-    // var renderer;
-    // var transition;
-    //
-    // var clock = new THREE.Clock();
-    // init();
-    // animate();
-    //
-    // function init() {
-    //   initGUI();
-    //
-    //   container = document.getElementById( "container" );
-    //   renderer = new THREE.WebGLRenderer( { antialias: true } );
-    //   renderer.setPixelRatio( window.devicePixelRatio );
-    //   renderer.setSize( window.innerWidth, window.innerHeight );
-    //   renderer.sortObjects = false;
-    //   container.appendChild( renderer.domElement );
-    //   stats = new Stats();
-    //   container.appendChild( stats.dom );
-    //   sceneA = new Scene( "cube", 5000, 1200, 120, new THREE.Vector3(0,-0.4,0), 0xffffff );
-    //   sceneB = new Scene( "sphere", 500, 2000, 50, new THREE.Vector3(0,0.2,0.1), 0x000000 );
-    //
-    //   transition = new Transition(sceneA,sceneB);
-    //
-    // }
-    // function animate() {
-    //   requestAnimationFrame( animate );
-    //   render();
-    //   stats.update();
-    // }
-    //
-    // function render() {
-    //
-    //   transition.render( clock.getDelta() );
-    //
-    // }
 
-</script>
 <script type="text/javascript">
 
     var container;
@@ -134,9 +95,7 @@
         sceneB.add( light );
         sceneC.add( light );
 
-        // window.scene = sceneA;
         window.scene = sceneA;
-        // window.sceneC = sceneC;
 
         window.THREE = THREE;
 
@@ -145,28 +104,25 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
         videoA = document.getElementById( 'videoA' );
-        videoA.src = "textures/veilhymn_720_4mbps.mp4?_ijt=5p94crknitqu0mtsdv0rlv6peu";
+        videoA.height = 810;
+        videoA.src = "textures/veilhymn_720_4mbps.mp4?_ijt=gillvlktqnq14noehcirojo0j2";
         videoA.setAttribute('crossorigin', 'anonymous');
         videoA.load(); // must call after setting/changing source
         videoA.play();
         videoA.setAttribute('crossorigin', 'anonymous');
 
-        // videoB = document.getElementById( 'videoB' );
-        // videoB.src = "textures/video.mp4";
-        // videoB.setAttribute('crossorigin', 'anonymous');
-        // videoB.load(); // must call after setting/changing source
-        // videoB.play();
-        // videoB.setAttribute('crossorigin', 'anonymous');
 
         textureA = new THREE.VideoTexture( videoA );
         textureA.minFilter = THREE.LinearFilter;
         textureA.magFilter = THREE.LinearFilter;
         textureA.format = THREE.RGBFormat;
 
+
         textureB = new THREE.VideoTexture( videoA );
         textureB.minFilter = THREE.LinearFilter;
         textureB.magFilter = THREE.LinearFilter;
         textureB.format = THREE.RGBFormat;
+
 
 
         var clearPass = new THREE.ClearPass();
@@ -201,44 +157,8 @@
         composer.addPass( clearMaskPass );
         composer.addPass( outputPass );
 
-        // renderer.autoClear = false;
-        // document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-        // // postprocessing
-        // var renderModel = new THREE.RenderPass( sceneB, camera );
-        // var effectBloom = new THREE.BloomPass( 3, 25, 1, 256 );
-        // var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-        // var dotScreenPass = new THREE.DotScreenPass();
-        // var glitchPass = new THREE.GlitchPass(0);
-        // glitchPass.renderToScreen = true;
-        // // dotScreenPass.renderToScreen = true;
-        // var effectFilm = new THREE.FilmPass(0.8, 0.325, 256, false);
-        // // effectFilm.renderToScreen = true;
-        //
-        // // effectCopy.renderToScreen = true;
-        // composer = new THREE.EffectComposer( renderer );
-        // composer.addPass( renderModel );
-        // // composer.addPass(dotScreenPass);
-        // // composer.addPass( effectBloom );
-        // // composer.addPass( effectCopy );
-        // // composer.addPass(effectFilm);
-        // composer.addPass(glitchPass);
-        //
-        // var movieMaterialA = new THREE.MeshBasicMaterial( { map: textureA, overdraw: true, side:THREE.DoubleSide } );
-        // var movieMaterialB = new THREE.MeshBasicMaterial( { map: textureB, overdraw: true, side:THREE.DoubleSide } );
-        // the geometry on which the movie will be displayed;
-        // 		movie image will be scaled to fit these dimensions.
-        // var movieGeometry = new THREE.PlaneGeometry( 720, 810, 0, 0 );
-        // var movieScreenA = new THREE.Mesh( movieGeometry, movieMaterialA );
-        // var movieScreenB = new THREE.Mesh( movieGeometry, movieMaterialB );
-        // movieScreenA.position.set(0,0,0);
-        // movieScreenB.position.set(0,0,0);
-        // sceneC.add(movieScreenA);
-        // sceneA.add(movieScreenB);
-
-        // camera.lookAt(movieScreenA.position);
         camera.position.z = 10;
 
-        // transition = new Transition(sceneA,sceneB);
     }
 
     function animate() {
