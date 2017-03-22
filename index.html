@@ -32,7 +32,19 @@
           z-index: 99;
       }
 
+    div#transition {
+        position: absolute;
+        z-index: 101;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+
+
   </style>
+    <link href="spritesheets/spritesheet-0.css" rel="stylesheet" />
+    <link href="spritesheets/spritesheet-1.css" rel="stylesheet" />
+    <link href="spritesheets/spritesheet-2.css" rel="stylesheet" />
 </head>
 <body>
 
@@ -46,10 +58,15 @@
     </div>
 </div>
 
-<video id="vr-video" loop webkit-playsinline style="display:none"></video>
 
 
-<video id="video" autoplay loop webkit-playsinline style="display:none"></video>
+
+<video id="vr-video" loop webkit-playsinline playsinline style="display:none"></video>
+
+
+<video id="video" autoplay loop webkit-playsinline playsinline style="display:none"></video>
+
+<video id="video2" webkit-playsinline playsinline style="display:none"></video>
 
   <script src="js/three.min.js" type="text/javascript"></script>
 
@@ -93,6 +110,8 @@
               video.muted = true;
               video.src = 'textures/Climb On in 360u00ba - White Water Kayaking.mp4';
               video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+              video.play();
+              video.autoplay = true;
 
               texture = new THREE.VideoTexture(video);
               texture.minFilter = THREE.NearestFilter;
@@ -196,28 +215,9 @@
             document.body.appendChild( container );
 
             var vrvideo = document.querySelector('.vr-video');
+            var transition = document.getElementById('transition');
 
-            container.addEventListener("mousedown", function(){
 
-                if(!toggled){
-
-                    TweenLite.to('#regular', 1 ,{opacity: 0});
-
-                    toggled = true;
-                    vrvideo.style.opacity = 1;
-                }
-
-            });
-
-            container.addEventListener("mouseup", function() {
-                button = document.getElementsByClassName('foo');
-                if(toggled){
-
-                    TweenLite.to('#regular', 1 ,{opacity: 1});
-                    toggled = false;
-                    vrvideo.style.opacity = 0;
-                }
-            });
 
             camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
             camera.position.z = 1000;
@@ -237,17 +237,39 @@
             container.appendChild( renderer.domElement );
 
             video = document.getElementById( 'video' );
-            video.src ="textures/GearVR-VeilHymm-Loop.mp4?_ijt=5dqcnvt7skbm0u3cc4bc96u04t";
+
+            video.src ="textures/GearVR-VeilHymm-Loop.mp4?_ijt=e0ocgt2k27igit1oev928296mr";
+
+            video.setAttribute('webkit-playsinline', 'webkit-playsinline');
             video.setAttribute('crossorigin', 'anonymous');
+
             video.loop = true;
             video.load(); // must call after setting/changing source
             video.play();
+            video.autoplay = true;
+            video.setAttribute('crossorigin', 'anonymous');
+
+
+            video2 = document.getElementById( 'video2' );
+            video2.src ="textures/GearVR-VeilHymm-Transition.mov?_ijt=e0ocgt2k27igit1oev928296mr";
+
+            video2.setAttribute('webkit-playsinline', 'webkit-playsinline');
+            video2.setAttribute('crossorigin', 'anonymous');
+            video.setAttribute('webkit-playsinline', 'webkit-playsinline');
+            video2.loop = false;
+            video2.load(); // must call after setting/changing source
+//            video.play();
             video.setAttribute('crossorigin', 'anonymous');
 
             texture = new THREE.VideoTexture( video );
             texture.minFilter = THREE.LinearFilter;
             texture.magFilter = THREE.LinearFilter;
             texture.format = THREE.RGBFormat;
+
+            texture2 = new THREE.VideoTexture( video );
+            texture2.minFilter = THREE.LinearFilter;
+            texture2.magFilter = THREE.LinearFilter;
+            texture2.format = THREE.RGBFormat;
 
             renderer.autoClear = false;
 
@@ -258,10 +280,54 @@
             var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
             movieScreen.position.set(0,0,0);
 
-            scene.add(movieScreen);
+            var movieMaterial2 = new THREE.MeshBasicMaterial( { map: texture2, overdraw: true, side:THREE.DoubleSide } );
+            // the geometry on which the movie will be displayed;
+            // 		movie image will be scaled to fit these dimensions.
+
+            var movieScreen2 = new THREE.Mesh( movieGeometry, movieMaterial2 );
+
+//            movieScreen.position.set(0,0,0);
+            movieScreen2.position.set(0,0,0);
+
+            scene.add(movieScreen, movieScreen2);
             camera.lookAt(movieScreen.position);
+            camera.layers.enable( 1 );
 
             window.addEventListener('resize', onWindowResize, false);
+
+            container.addEventListener("mousedown", function(){
+                toggleOn();
+            });
+            container.addEventListener("touchstart", function(){
+                toggleOn();
+            });
+
+            container.addEventListener("mouseup", function() {
+                toggleOff();
+            });
+            container.addEventListener("touchend", function() {
+                toggleOff();
+            });
+
+            function toggleOn() {
+                if(!toggled){
+                    TweenLite.to('#transition', 1 , {opacity: 1, visibility: 'visible'});
+                    TweenLite.to('#regular', 1 ,{opacity: 0});
+
+                    toggled = true;
+                    vrvideo.style.opacity = 1;
+                }
+            }
+
+            function toggleOff() {
+                button = document.getElementsByClassName('foo');
+                if(toggled){
+
+                    TweenLite.to('#regular', 1 ,{opacity: 1});
+                    toggled = false;
+                    vrvideo.style.opacity = 0;
+                }
+            }
 
         }
 
@@ -284,5 +350,7 @@
 
 
 </script>
+
+
 </body>
 </html>
