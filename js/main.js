@@ -9,9 +9,6 @@ var Main = function() {
         document.addEventListener('mousemove', onDocumentMouseMove, false);
         document.addEventListener('mousedown', onDocumentMouseDown, false);
         document.addEventListener('mouseup', onDocumentMouseUp, false);
-        // document.addEventListener('touchstart', onDocumentTouchStart, false);
-        // document.addEventListener('drop', onDocumentDrop, false);
-        // document.addEventListener('dragover', onDocumentDragOver, false);
         window.addEventListener('resize', onResize, false);
 
 
@@ -42,7 +39,7 @@ var Main = function() {
     }
 
     function onResize() {
-        Vr.onResize();
+        VR.onResize();
         Intro.onResize();
     }
 
