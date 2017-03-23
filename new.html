@@ -1,0 +1,98 @@
+<html>
+<head>
+    <title>ThreeJS Video Experiment</title>
+
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            margin: 0px;
+            overflow: hidden;
+            font-family:Monospace;
+            font-size:13px;
+            text-align:center;
+            font-weight: bold;
+            text-align:center;
+        }
+
+        .foo{
+            opacity: 0;
+        }
+
+        video, canvas{
+            width: 100%;
+            height: auto;
+        }
+        .vr-video{
+            position: absolute;
+            opacity: 0;
+        }
+        #regular{
+            position: fixed;
+            z-index: 99;
+        }
+
+        div#transition {
+            position: absolute;
+            z-index: 101;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+
+
+    </style>
+
+</head>
+<body>
+
+<div class="vr-video">
+    <div id="container"></div>
+</div>
+
+<div class="js-video">
+    <div id="regular">
+        <canvas id="canvasID"></canvas>
+    </div>
+</div>
+
+
+
+
+<video id="vr-video" autoplay loop webkit-playsinline playsinline style="display:none"></video>
+
+
+<video id="video" autoplay loop webkit-playsinline playsinline style="display:none"></video>
+
+<video id="video2" webkit-playsinline playsinline style="display:none"></video>
+
+<script
+        src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+        crossorigin="anonymous"></script>
+
+<script src="js/minivents.min.js"></script>
+<script src="js/three.min.js" type="text/javascript"></script>
+
+<script src="js/controls/VRControls.js"></script>
+<script src="js/effects/VREffect.js"></script>
+<script src="js/vr/WebVR.js"></script>
+
+
+<script src="js/webvr-polyfill.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenLite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TimelineLite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/easing/EasePack.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/plugins/CSSPlugin.min.js"></script>
+
+
+<script src="js/VR.js"></script>
+<script src="js/VRvideo.js"></script>
+<script src="js/Video.js"></script>
+<script src="js/Intro.js"></script>
+<script src="js/main.js"></script>
+
+
+</body>
+</html>
