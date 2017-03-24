@@ -2,9 +2,14 @@ var events = new Events();
 
 var Main = function() {
     function init() {
-        // if (!Detector.webgl) {
-        //     Detector.addGetWebGLMessage();
-        // }
+
+        // THREE.DefaultLoadingManager.onProgress = function ( item, loaded, total ) {
+        //     console.log( "loading: ", item, loaded, total );
+        // };
+
+        if (!Detector.webgl) {
+            Detector.addGetWebGLMessage();
+        }
 
         document.addEventListener('mousemove', onDocumentMouseMove, false);
         document.addEventListener('mousedown', onDocumentMouseDown, false);
@@ -17,6 +22,8 @@ var Main = function() {
         VrVideo.init();
         Intro.init();
         Video.init();
+        Transition.init();
+        TransVideo.init();
 
         onResize();
 
@@ -44,7 +51,10 @@ var Main = function() {
     }
 
     return {
-        init: init
+        init: init,
+        getIsMobile: function() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
     };
 
 }();

@@ -4,12 +4,14 @@ var VR = function() {
     function init(){
 
         events.on("update", update);
+        events.on("toggle", onToggle);
 
         var container = document.getElementById('container');
 
         scene = new THREE.Scene();
 
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.001, 10000);
+        // camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+        camera = new THREE.PerspectiveCamera( 100, window.innerWidth / window.innerHeight, 0.1, 10000 );
         camera.layers.enable(1); // render left view when no stereo available
 
         renderer = new THREE.WebGLRenderer();
@@ -33,9 +35,16 @@ var VR = function() {
 
     }
 
+    function onToggle() {
+        if(Intro.getToggled()){
+            console.log("intro toggled");
+        }
+    }
+
     function update() {
         controls.update();
         effect.render(scene, camera);
+
     }
 
     function onResize() {
@@ -57,12 +66,6 @@ var VR = function() {
         },
         getRenderer: function () {
             return renderer;
-        },
-        getCubeCameras: function () {
-            return [cubeCameraRead, cubeCameraWrite]
-        },
-        getControls: function () {
-            return controls;
         },
         onResize: onResize
     }

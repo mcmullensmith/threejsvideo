@@ -3,13 +3,14 @@ var Video = function() {
 
     function init() {
 
-        // events.on("update", update);
-
         video = document.getElementById( 'video' );
 
-        video.src ="textures/GearVR-Room-Loop_v2.mp4";
-        // http://localhost:63342/threejsvideo/textures/CoorsLight_2.mp4?_ijt=ilikeb99i245gctm46bbe2uu00
+        if (Main.getIsMobile()) {
+            video.src ="textures/GearVR-VeilHymm-Loop-Mobile.mp4";
 
+        } else {
+            video.src ="textures/GearVR-Room-Loop_v2.mp4";
+        }
 
         video.setAttribute('webkit-playsinline', 'webkit-playsinline');
         video.setAttribute('crossorigin', 'anonymous');
@@ -18,11 +19,13 @@ var Video = function() {
         video.load(); // must call after setting/changing source
         video.play();
         video.autoplay = true;
-        video.setAttribute('crossorigin', 'anonymous');
+        video.setAttribute('crossorigin', 'use-credentials');
 
         texture = new THREE.VideoTexture( video );
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+
         texture.format = THREE.RGBFormat;
 
         var movieMaterial = new THREE.MeshBasicMaterial( { map: texture, overdraw: true, side:THREE.DoubleSide } );
@@ -37,6 +40,9 @@ var Video = function() {
     }
 
     return {
-        init: init
+        init: init,
+        getVideo: function() {
+            return video;
+        }
     }
 }();

@@ -5,6 +5,10 @@ var Intro = function() {
 
     var scene, camera, renderer, light;
 
+    var toggled = false;
+
+    var closeButton = document.querySelector('.close');
+
     function init() {
         events.on("update", update);
 
@@ -29,6 +33,72 @@ var Intro = function() {
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
 
+        initListeners();
+    }
+
+    function initListeners() {
+        container.addEventListener("mousedown", function(){
+            toggleOn();
+        });
+        container.addEventListener("touchstart", function(){
+            toggleOn();
+        });
+
+        container.addEventListener("mouseup", function() {
+            toggleOff();
+        });
+
+    }
+
+    function toggleOn() {
+
+        events.emit("toggle");
+
+        if(!toggled){
+
+            if(Main.getIsMobile()){
+
+                closeButton.addEventListener("mousedown", function() {
+                    toggleOff();
+                });
+            }
+
+            TransVideo.getVideo().play();
+
+            TweenLite.to('.headphones', 1, {opacity: 0});
+
+            TweenLite.to('#transition-video', 0.6 ,{opacity: 1, onComplete: resetTransition}  );
+
+            function resetTransition() {
+                console.log('reset transition');
+                TweenLite.to('#transition-video', 0.4 ,{ opacity: 0}  );
+                TransVideo.getVideo().currentTime = 0;
+            }
+
+            TweenLite.to('#regular', 1 ,{opacity: 0});
+
+            toggled = true;
+
+            VrVideo.getVideoContainer().style.opacity = 1;
+
+            VrVideo.getVideo().play();
+            Video.getVideo().pause();
+        }
+    }
+
+    function toggleOff() {
+        events.emit("toggle");
+
+        if(toggled){
+
+            TweenLite.to('#regular', 1 ,{opacity: 1});
+            TweenLite.to('.headphones', 1, {opacity: 1});
+
+            toggled = false;
+            VrVideo.getVideoContainer().style.opacity = 0;
+            Video.getVideo().play();
+            VrVideo.getVideo().pause();
+        }
     }
 
     function onResize() {
@@ -54,11 +124,8 @@ var Intro = function() {
         getRenderer: function () {
             return renderer;
         },
-        getCubeCameras: function () {
-            return [cubeCameraRead, cubeCameraWrite]
-        },
-        getControls: function () {
-            return controls;
+        getToggled: function () {
+            return toggled;
         },
         onResize: onResize
     }

@@ -4,17 +4,27 @@ var VrVideo = function() {
 
         events.on("update", update);
 
+
         video = document.getElementById('vr-video');
         video.loop = true;
         video.width = 1280;
         video.height = 720;
         video.muted = true;
-        video.src = 'textures/CoorsLight_2.mp4?_ijt=ilikeb99i245gctm46bbe2uu00';
+
+        if (Main.getIsMobile()) {
+            video.src = "textures/CoorsLIght_mobile.mp4";
+        } else {
+            console.log('desktop');
+            video.src = 'textures/CoorsLIght_desktop.mp4';
+        }
+
+
+        videoContainer = document.querySelector('.vr-video');
 
         video.setAttribute('webkit-playsinline', 'webkit-playsinline');
-        video.play();
-        video.autoplay = true;
-        video.setAttribute('crossorigin', 'anonymous');
+        // video.play();
+        // video.autoplay = true;
+        video.setAttribute('crossorigin', 'use-credentials');
 
         texture = new THREE.VideoTexture(video);
         texture.minFilter = THREE.NearestFilter;
@@ -27,6 +37,14 @@ var VrVideo = function() {
         var geometry = new THREE.SphereGeometry(500, 60, 40);
         geometry.scale(-1, 1, 1);
 
+        // var uvs = geometry.faceVertexUvs[0];
+        //
+        // for (var i = 0; i < uvs.length; i++) {
+        //     for (var j = 0; j < 3; j++) {
+        //         uvs[i][j].x *= 0.5;
+        //     }
+        // }
+
         var material = new THREE.MeshBasicMaterial({map: texture});
         var mesh = new THREE.Mesh(geometry, material);
         mesh.rotation.y = -Math.PI / 2;
@@ -36,6 +54,14 @@ var VrVideo = function() {
         // right
         var geometry = new THREE.SphereGeometry(500, 60, 40);
         geometry.scale(-1, 1, 1);
+
+        // var uvs = geometry.faceVertexUvs[0];
+        // for (var i = 0; i < uvs.length; i++) {
+        //     for (var j = 0; j < 3; j++) {
+        //         uvs[i][j].x *= 0.5;
+        //         uvs[i][j].x += 0.5;
+        //     }
+        // }
 
         var material = new THREE.MeshBasicMaterial({map: texture});
         var mesh = new THREE.Mesh(geometry, material);
@@ -51,7 +77,13 @@ var VrVideo = function() {
 
 
     return{
-        init: init
+        init: init,
+        getVideoContainer: function() {
+            return videoContainer;
+        },
+        getVideo: function() {
+            return video;
+        }
     };
 
 }();
