@@ -15,10 +15,6 @@
             text-align:center;
         }
 
-        .foo{
-            opacity: 0;
-        }
-
         video, canvas{
             width: 100%;
             height: auto;
@@ -32,11 +28,12 @@
             z-index: 99;
         }
 
-        div#transition {
+        div#transition-video {
             position: absolute;
             z-index: 101;
             opacity: 0;
-            visibility: hidden;
+            /*visibility: hidden;*/
+            pointer-events: none;
         }
 
 
@@ -56,18 +53,24 @@
     </div>
 </div>
 
+<div class="transition-video">
+    <div id="transition-video">
+        <canvas id="transition"></canvas>
+    </div>
+
+</div>
 
 
 
-<video id="vr-video" autoplay loop webkit-playsinline playsinline style="display:none"></video>
+
+<video id="vr-video"loop webkit-playsinline playsinline style="display:none"></video>
 
 
 <video id="video" autoplay loop webkit-playsinline playsinline style="display:none"></video>
 
-<video id="video2" webkit-playsinline playsinline style="display:none"></video>
+<video id="trans-video" webkit-playsinline playsinline style="display:none"></video>
 
-<script
-        src="https://code.jquery.com/jquery-3.2.1.min.js"
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"
         integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
         crossorigin="anonymous"></script>
 
@@ -93,6 +96,8 @@
 <script src="js/VRvideo.js"></script>
 <script src="js/Video.js"></script>
 <script src="js/Intro.js"></script>
+<script src="js/Transition.js"></script>
+<script src="js/TransVideo.js"></script>
 <script src="js/main.js"></script>
 
 
