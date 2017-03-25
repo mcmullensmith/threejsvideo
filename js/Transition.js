@@ -1,4 +1,4 @@
-var Transition = function () {
+var TransitionView = function () {
 
     var scene, camera, renderer, light;
 
@@ -27,6 +27,14 @@ var Transition = function () {
         container.appendChild( renderer.domElement );
     }
 
+    function onResize() {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
     function update() {
         renderer.render( scene, camera );
     }
@@ -44,6 +52,7 @@ var Transition = function () {
         },
         getRenderer: function () {
             return renderer;
-        }
+        },
+        onResize:onResize
     }
 }();

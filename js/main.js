@@ -15,6 +15,7 @@ var Main = function() {
         document.addEventListener('mousedown', onDocumentMouseDown, false);
         document.addEventListener('mouseup', onDocumentMouseUp, false);
         window.addEventListener('resize', onResize, false);
+        window.addEventListener('orientationchange', onResize, false);
 
 
         //INIT HANDLERS
@@ -22,12 +23,21 @@ var Main = function() {
         VrVideo.init();
         Intro.init();
         Video.init();
-        Transition.init();
-        TransVideo.init();
+        TransitionView.init();
+        TransitionVideo.init();
 
         onResize();
 
         update();
+
+        $("body").on('swipeup',    function(){
+            screenfull.request();
+            Video.getVideo().play();
+        });
+
+        $(".intro-close").on("click", function() {
+            screenfull.exit();
+        });
     }
 
     function update() {
@@ -48,12 +58,16 @@ var Main = function() {
     function onResize() {
         VR.onResize();
         Intro.onResize();
+        TransitionView.onResize();
     }
 
     return {
         init: init,
         getIsMobile: function() {
             return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        },
+        getIsLocal: function() {
+            return location.hostname === "localhost" || location.hostname === "127.0.0.1";
         }
     };
 

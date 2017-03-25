@@ -10,9 +10,10 @@ var VR = function() {
 
         scene = new THREE.Scene();
 
-        // camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        camera = new THREE.PerspectiveCamera( 100, window.innerWidth / window.innerHeight, 0.1, 10000 );
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+
         camera.layers.enable(1); // render left view when no stereo available
+
 
         renderer = new THREE.WebGLRenderer();
         renderer.setClearColor(0x101010);
@@ -44,13 +45,12 @@ var VR = function() {
     function update() {
         controls.update();
         effect.render(scene, camera);
-
     }
 
     function onResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        effect.setSize(window.innerWidth, window.innerHeight);
+        effect.setSize( window.innerWidth, window.innerHeight );
     }
 
     return {

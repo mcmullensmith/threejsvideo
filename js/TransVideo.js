@@ -1,7 +1,7 @@
 /**
  * Created by Mattsmith on 3/23/17.
  */
-var TransVideo = function() {
+var TransitionVideo = function() {
     var video;
 
     function init() {
@@ -17,7 +17,11 @@ var TransVideo = function() {
         video.load(); // must call after setting/changing source
         // video.play();
         // video.autoplay = true;
-        video.setAttribute('crossorigin', 'use-credentials');
+        if (Main.getIsLocal()) {
+            video.setAttribute('crossorigin', 'anonymous');
+        } else {
+            video.setAttribute('crossorigin', 'use-credentials');
+        }
 
         texture = new THREE.VideoTexture( video );
         texture.minFilter = THREE.LinearFilter;
@@ -31,8 +35,8 @@ var TransVideo = function() {
         var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
         movieScreen.position.set(0,0,0);
 
-        Transition.getScene().add(movieScreen);
-        Transition.getCamera().lookAt(movieScreen.position);
+        TransitionView.getScene().add(movieScreen);
+        TransitionView.getCamera().lookAt(movieScreen.position);
     }
 
     return {

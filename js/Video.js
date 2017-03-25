@@ -19,7 +19,13 @@ var Video = function() {
         video.load(); // must call after setting/changing source
         video.play();
         video.autoplay = true;
-        video.setAttribute('crossorigin', 'use-credentials');
+
+        if (Main.getIsLocal()) {
+            video.setAttribute('crossorigin', 'anonymous');
+        } else {
+            video.setAttribute('crossorigin', 'use-credentials');
+        }
+
 
         texture = new THREE.VideoTexture( video );
         texture.minFilter = THREE.LinearFilter;

@@ -9,6 +9,9 @@ var Intro = function() {
 
     var closeButton = document.querySelector('.close');
 
+    var windowHalfX = window.innerWidth / 2;
+    var windowHalfY = window.innerHeight / 2;
+
     function init() {
         events.on("update", update);
 
@@ -37,17 +40,20 @@ var Intro = function() {
     }
 
     function initListeners() {
-        container.addEventListener("mousedown", function(){
-            toggleOn();
-        });
-        container.addEventListener("touchstart", function(){
-            toggleOn();
-        });
 
-        container.addEventListener("mouseup", function() {
-            toggleOff();
-        });
+        if(Main.getIsMobile()) {
+            container.addEventListener("touchstart", function () {
+                toggleOn();
+            });
+        } else {
+            container.addEventListener("mousedown", function(){
+                toggleOn();
+            });
 
+            container.addEventListener("mouseup", function() {
+                toggleOff();
+            });
+        }
     }
 
     function toggleOn() {
@@ -63,7 +69,7 @@ var Intro = function() {
                 });
             }
 
-            TransVideo.getVideo().play();
+            TransitionVideo.getVideo().play();
 
             TweenLite.to('.headphones', 1, {opacity: 0});
 
@@ -71,8 +77,11 @@ var Intro = function() {
 
             function resetTransition() {
                 console.log('reset transition');
-                TweenLite.to('#transition-video', 0.4 ,{ opacity: 0}  );
-                TransVideo.getVideo().currentTime = 0;
+                TweenLite.to('#transition-video', 0.4 ,{ opacity: 0, onComplete: resetVideo} );
+            }
+
+            function resetVideo() {
+                TransitionVideo.getVideo().currentTime = 0;
             }
 
             TweenLite.to('#regular', 1 ,{opacity: 0});
@@ -82,7 +91,7 @@ var Intro = function() {
             VrVideo.getVideoContainer().style.opacity = 1;
 
             VrVideo.getVideo().play();
-            Video.getVideo().pause();
+            // Video.getVideo().pause();
         }
     }
 
@@ -97,13 +106,17 @@ var Intro = function() {
             toggled = false;
             VrVideo.getVideoContainer().style.opacity = 0;
             Video.getVideo().play();
-            VrVideo.getVideo().pause();
+            // VrVideo.getVideo().pause();
         }
     }
 
     function onResize() {
+
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
     function update() {
