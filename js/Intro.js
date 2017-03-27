@@ -42,7 +42,7 @@ var Intro = function() {
     function initListeners() {
 
         if(Main.getIsMobile()) {
-            container.addEventListener("touchstart", function () {
+            container.addEventListener("click", function () {
                 toggleOn();
             });
         } else {
@@ -64,7 +64,7 @@ var Intro = function() {
 
             if(Main.getIsMobile()){
 
-                closeButton.addEventListener("mousedown", function() {
+                closeButton.addEventListener("click", function() {
                     toggleOff();
                 });
             }

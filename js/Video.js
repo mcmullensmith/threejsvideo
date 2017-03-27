@@ -17,7 +17,9 @@ var Video = function() {
 
         video.loop = true;
         video.load(); // must call after setting/changing source
-        video.play();
+        if (!Main.getIsMobile()) {
+            video.play();
+        }
         video.autoplay = true;
 
         if (Main.getIsLocal()) {

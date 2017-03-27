@@ -1,6 +1,7 @@
 var events = new Events();
 
 var Main = function() {
+
     function init() {
 
         // THREE.DefaultLoadingManager.onProgress = function ( item, loaded, total ) {
@@ -17,8 +18,39 @@ var Main = function() {
         window.addEventListener('resize', onResize, false);
         window.addEventListener('orientationchange', onResize, false);
 
+        if((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) {
+            console.log('is mobile');
+            $('.overlay').on('click', handler);
 
-        //INIT HANDLERS
+        } else {
+            console.log('is not mobile');
+            initModules();
+        }
+
+
+        update();
+
+    }
+
+    function handler() {
+        if (screenfull.enabled) {
+            screenfull.request();
+            initModules();
+        } else {
+            initModules();
+        }
+
+        setTimeout(function() {
+            TweenLite.to('.overlay', 1, {opacity: 0, onComplete: hideOverlay});
+        });
+
+        function hideOverlay() {
+            $('.overlay').css('visibility' , 'hidden');
+        }
+
+    }
+
+    function initModules() {
         VR.init();
         VrVideo.init();
         Intro.init();
@@ -26,18 +58,9 @@ var Main = function() {
         TransitionView.init();
         TransitionVideo.init();
 
+        $("body").unbind("click", handler);
+
         onResize();
-
-        update();
-
-        $("body").on('swipeup',    function(){
-            screenfull.request();
-            Video.getVideo().play();
-        });
-
-        $(".intro-close").on("click", function() {
-            screenfull.exit();
-        });
     }
 
     function update() {
