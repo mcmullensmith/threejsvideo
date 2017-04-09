@@ -32,6 +32,7 @@ var Main = function() {
 
     }
 
+
     function handler() {
         if (screenfull.enabled) {
             screenfull.request();
@@ -42,7 +43,7 @@ var Main = function() {
 
         setTimeout(function() {
             TweenLite.to('.overlay', 1, {opacity: 0, onComplete: hideOverlay});
-        });
+        }, 1000 );
 
         function hideOverlay() {
             $('.overlay').css('visibility' , 'hidden');
