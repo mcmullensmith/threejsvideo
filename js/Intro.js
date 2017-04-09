@@ -106,7 +106,7 @@ var Intro = function() {
             toggled = false;
             VrVideo.getVideoContainer().style.opacity = 0;
             Video.getVideo().play();
-            // VrVideo.getVideo().pause();
+            VrVideo.getVideo().pause();
         }
     }
 
