@@ -4,7 +4,7 @@
 
     <style>
         body {
-            background-color: #000;
+            background-color: #cccccc;
             color: #fff;
             margin: 0px;
             overflow: hidden;
@@ -13,6 +13,11 @@
             text-align:center;
             font-weight: bold;
             text-align:center;
+            background-image:url(images/space.png);
+        }
+
+        canvas{
+            background: none;
         }
 
         video{
@@ -32,6 +37,8 @@
 </video>
 
 <script src="js/three.min.js" type="text/javascript"></script>
+<script src="js/motionstack-v1.0.1.js"></script>
+<script src="js/libs/physi.js"></script>
 
 <script src="js/libs/stats.min.js"></script>
 <script src="js/libs/dat.gui.min.js"></script>
@@ -62,7 +69,7 @@
 <script type="text/javascript">
 
     var container;
-    var camera, sceneA, sceneB, renderer;
+    var camera, sceneA, sceneC, renderer, crate;
     var videoA, videoB, textureA, textureB, material, mesh;
     var composer;
     var mouseX = 0;
@@ -80,48 +87,56 @@
         camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
 
         sceneA = new THREE.Scene();
-        sceneB = new THREE.Scene();
         sceneC = new THREE.Scene();
 
-        torus = new THREE.Mesh( new THREE.TorusGeometry( 3, 1, 16, 32 ) );
-        sceneA.add( torus );
+//        torus = new THREE.Mesh( new THREE.TorusGeometry( 3, 1, 16, 32 ) );
+//        sceneA.add( torus );
 
-        box = new THREE.Mesh( new THREE.BoxGeometry( 4, 4, 4 ) );
-        sceneC.add( box );
+        box = new THREE.BoxGeometry( 1, 1, 1 );
+//        sceneA.add( box );
 
         var light = new THREE.DirectionalLight( 0xffffff );
         light.position.set( 0.5, 1, 1 ).normalize();
         sceneA.add( light );
-        sceneB.add( light );
-        sceneC.add( light );
+//        sceneC.add( light );
 
         window.scene = sceneA;
 
         window.THREE = THREE;
 
-        renderer = new THREE.WebGLRenderer( { antialias: false } );
+        renderer = new THREE.WebGLRenderer( { antialias: false, alpha: true } );
+        renderer.setClearColor(0xffffff, 0);
+        renderer.clearAlpha = true;
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
         container.appendChild( renderer.domElement );
+
         videoA = document.getElementById( 'videoA' );
         videoA.height = 810;
-        videoA.src = "textures/veilhymn_720_4mbps.mp4?_ijt=gillvlktqnq14noehcirojo0j2";
+        videoA.src = "textures/GearVR-Room-Loop_v2.mp4";
         videoA.setAttribute('crossorigin', 'anonymous');
         videoA.load(); // must call after setting/changing source
         videoA.play();
-        videoA.setAttribute('crossorigin', 'anonymous');
 
 
-        textureA = new THREE.VideoTexture( videoA );
-        textureA.minFilter = THREE.LinearFilter;
-        textureA.magFilter = THREE.LinearFilter;
-        textureA.format = THREE.RGBFormat;
+//        textureA = new THREE.VideoTexture( videoA );
+//        textureA.minFilter = THREE.LinearFilter;
+//        textureA.magFilter = THREE.LinearFilter;
+//        textureA.format = THREE.RGBFormat;
+//        var textureA = new THREE.TextureLoader().load( 'images/space.png' );
 
 
         textureB = new THREE.VideoTexture( videoA );
         textureB.minFilter = THREE.LinearFilter;
         textureB.magFilter = THREE.LinearFilter;
         textureB.format = THREE.RGBFormat;
+
+//        textureB.wrapS = textureB.wrapT = THREE.RepeatWrapping;
+        textureB.wrapS = textureB.wrapT = THREE.ClampToEdgeWrapping;
+
+        var crateMaterial = new THREE.MeshLambertMaterial( { map: textureB } );
+        crate = new THREE.Mesh( box, crateMaterial );
+        sceneA.add(crate);
 
 
 
@@ -132,7 +147,7 @@
         var maskPass1 = new THREE.MaskPass( sceneA, camera );
         var maskPass2 = new THREE.MaskPass( sceneC, camera );
 
-        var texturePass1 = new THREE.TexturePass( textureA );
+//        var texturePass1 = new THREE.TexturePass( textureA );
         var texturePass2 = new THREE.TexturePass( textureB );
 
         var outputPass = new THREE.ShaderPass( THREE.CopyShader );
@@ -147,18 +162,69 @@
 
         var renderTarget = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, parameters );
 
-        composer = new THREE.EffectComposer( renderer, renderTarget );
-        composer.addPass( clearPass );
-        composer.addPass( maskPass1 );
-        composer.addPass( texturePass1 );
-        composer.addPass( clearMaskPass );
-        composer.addPass( maskPass2 );
-        composer.addPass( texturePass2);
-        composer.addPass( clearMaskPass );
-        composer.addPass( outputPass );
+//        composer = new THREE.EffectComposer( renderer, renderTarget );
+//        composer.addPass( clearPass );
+//        composer.addPass( maskPass1 );
+//        composer.addPass( texturePass1 );
+//        composer.addPass( clearMaskPass );
+//        composer.addPass( maskPass2 );
+//        composer.addPass( texturePass2);
+//        composer.addPass( clearMaskPass );
+//        composer.addPass( outputPass );
 
         camera.position.z = 10;
 
+        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+//        accelerometer();
+        var motionOrientation = new MotionStack.Orientation();
+        motionOrientation.start(tracking);
+
+    }
+
+//    function accelerometer() {
+//        var accelerometer = new MotionStack.Accelerometer();
+//
+//        accelerometer.start(function(e) {
+//            console.log(e.x, e.y, e.z);
+//        });
+//
+//        accelerometer.stop();
+//    }
+    var angle, x, y, z;
+
+    function orientation() {
+//        // motion controls
+//        var angle, x, y, z;
+//        function tracking(e) {
+//            var q = e.quaternion;
+//            var factor = 1 / Math.max(1E-5, Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z));
+//
+//            angle = 2.0 * Math.acos(q.w) || 0;
+//            x = q.x * factor;
+//            y = -q.y * factor;
+//            z = q.z * factor;
+//        }
+
+//        var motionOrientation = new MotionStack.Orientation();
+//        motionOrientation.start(tracking);
+
+        // animation loop
+//        var $ = document.querySelectorAll.bind(document);
+//        var cube = $("#cube")[0];
+//        function rotateCube() {
+//            cube.style.webkitTransform = "rotate3d("+ x +", "+ y +", "+ z +", "+ angle +"rad) rotateX(-90deg) translateZ(0)";
+//            cube.style.transform = cube.style.webkitTransform;
+//        }
+//
+//        var rotateThisCube = rotateCube.bind(this);
+//        window.requestAnimationFrame(function loop() {
+//            if(angle !== undefined) {
+//                rotateThisCube();
+//            }
+//
+//            window.requestAnimationFrame(loop);
+//        });
     }
 
     function animate() {
@@ -167,31 +233,47 @@
     }
 
     function onDocumentMouseMove(event) {
+        event.preventDefault();
         mouseX = ( event.clientX - windowHalfX );
         mouseY = ( event.clientY - windowHalfY ) * 0.3;
+    }
+
+    function tracking(e) {
+        var q = e.quaternion;
+        var factor = 1 / Math.max(1E-5, Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z));
+
+        angle = 2.0 * Math.acos(q.w) || 0;
+        x = q.x * factor;
+        y = -q.y * factor;
+        z = q.z * factor;
     }
 
     function render() {
         var delta = clock.getDelta ();
         var time = performance.now() * 0.001;
 
-        camera.lookAt( sceneA.position );
+//        camera.lookAt( sceneA.position );
 
-        box.position.x = Math.cos( time / 1.5 ) * 2;
-        box.position.y = Math.sin( time ) * 2;
-        box.rotation.x = time;
-        box.rotation.y = time / 2;
+//        crate.position.x = x;
+//        crate.position.y =  Math.sin( time / 1.5 ) * 2;
+        crate.rotation.x = x;
+        crate.rotation.y = y;
 
 
-        torus.position.x = Math.cos( time ) * 2;
-        torus.position.y = Math.sin( time / 1.5 ) * 2;
-        torus.rotation.x = time;
-        torus.rotation.y = time / 2;
+        var motionOrientation = new MotionStack.Orientation();
+        motionOrientation.start(tracking);
 
-        renderer.clear();
-        // renderer.clear();
+
+//        torus.position.x = Math.cos( time ) * 2;
+//        torus.position.y = Math.sin( time / 1.5 ) * 2;
+//        torus.rotation.x = time;
+//        torus.rotation.y = time / 2;
+
+//        renderer.clear();
         requestAnimationFrame( render );
-        composer.render(delta);
+//        renderer.render(scene, camera);
+        renderer.render( sceneA, camera );
+//        composer.render(delta);
     }
 </script>
 </body>
