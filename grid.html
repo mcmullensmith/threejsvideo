@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>three.js webgl - materials</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            color: #fff;
+            font-family:Monospace;
+            font-size:13px;
+            text-align:center;
+            background-color: #000;
+            margin: 0px;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            top: 0px; width: 100%;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height="810">
+</video>
+
+<script src="js/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/TrackballControls.js"></script>
+<script src="js/renderers/CanvasRenderer.js"></script>
+<script src="js/libs/tween.min.js"></script>
+
+<script src="js/Detector.js"></script>
+<script src="js/libs/stats.min.js"></script>
+
+<script>
+    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+    var container, stats;
+    var camera, scene, renderer, controls, raycaster;
+    var particleLight;
+    var videoA, textureB;
+
+    var objects = [];
+    var targets = { table: [], sphere: [], helix: [], grid: [] };
+//    var loader = new THREE.FontLoader();
+
+//    loader.load( 'fonts/gentilis_regular.typeface.json', function ( font ) {
+//        init( font );
+//        animate();
+//    } );
+
+    var mouse = new THREE.Vector2(), INTERSECTED;
+    var radius = 100, theta = 0;
+
+    init();
+    animate();
+
+    function init() {
+        container = document.createElement( 'div' );
+        document.body.appendChild( container );
+        camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 2000 );
+        camera.position.set( 0.0, 400, 400 * 3.5 );
+        //
+//        var reflectionCube = new THREE.CubeTextureLoader()
+//            .setPath( 'textures/cube/SwedishRoyalCastle/' )
+//            .load( [ 'px.jpg', 'nx.jpg', 'py.jpg', 'ny.jpg', 'pz.jpg', 'nz.jpg' ] );
+//
+//        reflectionCube.format = THREE.RGBFormat;
+        scene = new THREE.Scene();
+//        scene.background = reflectionCube;
+
+        // Materials
+        var imgTexture = new THREE.TextureLoader().load( "img/DSCF3759.jpg" );
+        imgTexture.wrapS = imgTexture.wrapT = THREE.RepeatWrapping;
+        imgTexture.anisotropy = 16;
+        imgTexture = null;
+
+        var cubeWidth = 400;
+        var numberOfSphersPerSide = 5;
+        var sphereRadius = ( cubeWidth / numberOfSphersPerSide ) * 0.8 * 0.5;
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+
+        var hCount = 3,
+            vCount = 3,
+            size = 20,
+            spacing = 25;
+
+        var urls = ["http://stackoverflow.com", "http://msn.com", "http://samsung.com/us", "http://google.com", "http://threejs.org",
+            "http://amazon.com", "http://barbariangroup.com", "http://nytimes.com", "http://bing.com"];
+
+        var grid = new THREE.Object3D(); // just to hold them all together
+
+        videoA = document.getElementById('videoA');
+        videoA.height = 810;
+        videoA.src = "textures/GearVR-Room-Loop_v2.mp4";
+        videoA.setAttribute('crossorigin', 'anonymous');
+        videoA.load(); // must call after setting/changing source
+        videoA.play();
+
+        textureB = new THREE.VideoTexture(videoA);
+        textureB.minFilter = THREE.LinearFilter;
+        textureB.magFilter = THREE.LinearFilter;
+        textureB.format = THREE.RGBFormat;
+
+        textureB.wrapS = textureB.wrapT = THREE.ClampToEdgeWrapping;
+
+        var crateMaterial = new THREE.MeshLambertMaterial({map: textureB});
+
+        for (var h = 0; h < hCount; h += 1) {
+            for (var v = 0; v < vCount; v += 1) {
+                var box = new THREE.Mesh( new THREE.BoxBufferGeometry(size, size, size),
+                    new THREE.MeshLambertMaterial( {map: textureB} ) );
+                box.position.x = (h - hCount / 2) * spacing;
+                box.position.y = (v - vCount / 2) * spacing;
+                grid.add(box);
+
+                objects.push( box );
+
+            }
+        }
+
+        for (var i = 0; i < objects.length; i += 1) {
+            objects[i].userData = { URL: urls[i]};
+            var object = new THREE.Object3D();
+//            object.position.x = ( i * 140 );
+//            object.position.y = ( i * 180 );
+            object.position.x = ( ( i % 3 ) * 400 ) - 300;
+            object.position.y = ( - ( Math.floor( i / 3 ) % 3 ) * 400 ) + 300;
+
+            targets.table.push( object);
+        }
+
+        scene.add(grid);
+
+
+        particleLight = new THREE.Mesh( new THREE.SphereBufferGeometry( 4, 8, 8 ), new THREE.MeshBasicMaterial( { color: 0xffffff } ) );
+        scene.add( particleLight );
+        // Lights
+        scene.add( new THREE.AmbientLight( 0x222222 ) );
+
+        var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        directionalLight.position.set( 1, 1, 1 ).normalize();
+        scene.add( directionalLight );
+
+        var pointLight = new THREE.PointLight( 0xffffff, 2, 800 );
+        particleLight.add( pointLight );
+
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
+        renderer.gammaInput = true;
+        renderer.gammaOutput = true;
+        //
+        stats = new Stats();
+//        container.appendChild( stats.dom );
+//        controls = new THREE.OrbitControls( camera );
+//        controls.target.set( 0, 0, 0 );
+//
+//        controls.update();
+
+        controls = new THREE.TrackballControls( camera, renderer.domElement );
+        controls.rotateSpeed = 0.5;
+        controls.minDistance = 500;
+        controls.maxDistance = 6000;
+        controls.addEventListener( 'change', render );
+
+        transform( targets.table, 2000 );
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function onDocumentTouchStart( event ) {
+
+        event.preventDefault();
+
+        event.clientX = event.touches[0].clientX;
+        event.clientY = event.touches[0].clientY;
+        onDocumentMouseDown( event );
+
+    }
+
+    function transform( targets, duration ) {
+        TWEEN.removeAll();
+        for ( var i = 0; i < objects.length; i ++ ) {
+            var object = objects[ i ];
+            var target = targets[ i ];
+            console.log(target);
+
+            new TWEEN.Tween( object.position )
+                .to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+                .easing( TWEEN.Easing.Exponential.InOut )
+                .start();
+            new TWEEN.Tween( object.rotation )
+                .to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+                .easing( TWEEN.Easing.Exponential.InOut )
+                .start();
+        }
+        new TWEEN.Tween( this )
+            .to( {}, duration * 2 )
+            .onUpdate( render )
+            .start();
+    }
+
+    function onDocumentMouseDown( event ) {
+
+        event.preventDefault();
+
+        mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+
+        raycaster.setFromCamera( mouse, camera );
+
+
+        var intersects = raycaster.intersectObjects( objects );
+
+        if ( intersects.length > 0 ) {
+
+            window.open(intersects[0].object.userData.URL);
+
+        }
+
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        TWEEN.update();
+        render();
+        stats.update();
+        controls.update();
+    }
+    function render() {
+        var timer = Date.now() * 0.00025;
+
+//        theta += 0.1;
+//
+//        camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+//        camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+//        camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+        camera.lookAt( scene.position );
+//        camera.updateMatrixWorld();
+
+//        particleLight.position.x = Math.sin( timer * 7 ) * 300;
+//        particleLight.position.y = Math.cos( timer * 5 ) * 400;
+//        particleLight.position.z = Math.cos( timer * 3 ) * 300;
+
+        renderer.render( scene, camera );
+    }
+</script>
+
+</body>
+</html>
