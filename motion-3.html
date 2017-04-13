@@ -32,7 +32,7 @@
 
 </div>
 
-<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height="810"> -->
+<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height="810">
 
 </video>
 
@@ -231,7 +231,7 @@
             if(isMobileDevice()) {
                 var orientation = new MotionStack.Orientation();
                 orientation.start(function(e) {
-                    console.log(e.yaw, e.pitch, e.roll);
+//                    console.log(e.yaw, e.pitch, e.roll);
                     viewQuat.set(
                         e.quaternion.x,
                         e.quaternion.y,
@@ -244,6 +244,25 @@
                 if (viewQuat) {
                     crate.quaternion.copy(viewQuat);
                 }
+
+
+                var relativePitch = new MotionStack.RelativePitch({continuous: true});
+                relativePitch.start(function(e) {
+
+//                    var scroll = smooth(
+//                        computeScroll(e.angle),
+//                        previousScroll
+//                    );
+                });
+
+                var relativeHeading = new MotionStack.RelativeHeading({continuous: true});
+                relativeHeading.start(function (e) {
+//                    if (Math.abs(e.angle) > 180) {
+//                        return;
+//                    }
+//                    var x = 100 - map_range(e.angle,-180,180,0,100);
+//                    imageElement.style.backgroundPosition = x+"% 50%";
+                });
             }
 
             if (!mouseDown) {
