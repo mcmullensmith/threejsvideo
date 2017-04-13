@@ -389,12 +389,20 @@
             handleRotation();
         }
 
+
+
         var orientation = new MotionStack.Orientation();
 
         orientation.start(function(e) {
-//            viewQuat.set(
-            deltaX = e.quaternion.x - startPoint.x;
-            deltaY = e.quaternion.y - startPoint.y;
+//            console.log("orientation: ", e);
+            var q = e.quaternion;
+            var factor = 1 / Math.max(1E-5, Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z));
+
+            deltaX = q.x - startPoint.x;
+            deltaY = q.y - startPoint.y;
+
+//            crate.position.y = e.quaternion.x *= (drag * 10);
+//            crate.position.x = e.quaternion.y *= (drag * 10);
 
             if (deltaX < -minDelta || deltaX > minDelta)
             {
@@ -409,13 +417,10 @@
             {
                 deltaY = 0;
             }
-//                e.quaternion.z,
-//                e.quaternion.w
+
             handleRotation();
 
-//            startPoint.x = e.quaternion.x;
-//            startPoint.y = e.quaternion.y;
-//            ).premultiply(curQuaternion);
+
         });
 
 
