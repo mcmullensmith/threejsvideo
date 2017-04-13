@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Samsung Galaxy Studio</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            color: #fff;
+            font-size:13px;
+            text-align:center;
+            background-color: #000;
+            margin: 0px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<video id="video" autoplay loop webkit-playsinline style="display:none" width="720" height="810">
+</video>
+
+<script src="js/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/TrackballControls.js"></script>
+<script src="js/libs/Tween.js"></script>
+
+<script src="js/Detector.js"></script>
+<script src="js/libs/stats.min.js"></script>
+
+<script>
+    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+    var container, stats;
+    var camera, scene, renderer, controls, raycaster;
+    var video, texture;
+
+    var objects = [];
+    var gridLayout = [] ;
+
+    var mouse = new THREE.Vector2();
+
+    var INTERSECTED;
+
+    init();
+    animate();
+
+    function init() {
+        container = document.createElement( 'div' );
+        document.body.appendChild( container );
+
+        camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.z = 3000;
+
+        scene = new THREE.Scene();
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        var boxSize = 200;
+
+        var numBoxes = 9;
+
+        var urls = ["http://stackoverflow.com", "http://msn.com", "http://samsung.com/us", "http://google.com", "http://threejs.org",
+            "http://amazon.com", "http://barbariangroup.com", "http://nytimes.com", "http://bing.com"];
+
+        var grid = new THREE.Object3D(); // just to hold them all together
+
+        //TODO: a different video assigned to each box
+        video = document.getElementById('video');
+        video.height = 810;
+        video.src = "textures/GearVR-VeilHymm-Loop-Mobile.mp4";
+        video.setAttribute('crossorigin', 'anonymous');
+        video.load(); // must call after setting/changing source
+        video.play(); //on mobile a user interaction needs to start video play
+
+        texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBFormat;
+
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+
+        var boxMaterial = new THREE.MeshLambertMaterial({map: texture});
+
+        for(var k = 0; k < numBoxes; k += 1 ) {
+
+            var box = new THREE.Mesh(new THREE.BoxBufferGeometry(boxSize, boxSize, boxSize), boxMaterial);
+
+            //could be set to an expanded grid pattern if a more structured animation is desired
+            box.position.x = Math.random() * 4000 - 2000;
+            box.position.y = Math.random() * 4000 - 2000;
+
+            box.material.transparent = true;
+            box.material.opacity = 0;
+
+            grid.add(box);
+
+            objects.push(box);
+
+        }
+
+        for (var i = 0; i < objects.length; i += 1) {
+            objects[i].userData = { URL: urls[i]};
+
+            var object = new THREE.Object3D();
+
+            object.position.x = ( ( i % 3 ) * 220 ) - 220;
+            object.position.y = ( - ( Math.floor( i / 3 ) % 3 ) * 220 ) + 220;
+
+            gridLayout.push( object);
+        }
+
+        scene.add(grid);
+
+        //position the grid to an orthographic position initially
+        grid.rotation.x = -180;
+        grid.rotation.z = 180;
+
+        // Lights
+        scene.add( new THREE.AmbientLight( 0x220ea3 ) );
+
+        var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        directionalLight.position.set( 1, 1, 1 ).normalize();
+        scene.add( directionalLight );
+
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
+        renderer.gammaInput = true;
+        renderer.gammaOutput = true;
+
+        stats = new Stats();
+        container.appendChild( stats.dom );
+
+        controls = new THREE.TrackballControls( camera, renderer.domElement );
+        controls.rotateSpeed = 0.5;
+        controls.minDistance = 500;
+        controls.maxDistance = 6000;
+        controls.addEventListener( 'change', render );
+
+        controls.target.copy( grid.position );
+
+        transform( gridLayout, 2000 );
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        //for mousedown - will only work if the controls are turned off
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+
+        //for mouseover experiment
+        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function onDocumentTouchStart( event ) {
+
+        event.preventDefault();
+
+        event.clientX = event.touches[0].clientX;
+        event.clientY = event.touches[0].clientY;
+        onDocumentMouseDown( event );
+
+    }
+
+    //animate the grid
+    function transform( targets, duration ) {
+        TWEEN.removeAll();
+        for ( var i = 0; i < objects.length; i ++ ) {
+            var object = objects[ i ];
+            var target = targets[ i ];
+            console.log(target);
+
+            new TWEEN.Tween( object.position )
+                .to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+                .easing( TWEEN.Easing.Elastic.InOut )
+                .start();
+
+            new TWEEN.Tween( object.material)
+                .to( { opacity: 1 }, Math.random() * duration + duration  )
+                .easing( TWEEN.Easing.Exponential.InOut )
+                .start();
+        }
+        new TWEEN.Tween( this )
+            .to( {}, duration * 2 )
+            .onUpdate( render )
+            .start();
+    }
+
+    function onDocumentMouseMove( event ) {
+        event.preventDefault();
+
+        mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+
+        raycaster.setFromCamera( mouse, camera );
+
+
+        var intersects = raycaster.intersectObjects( objects );
+
+        if ( intersects.length > 0 )
+        {
+            // if the closest object intersected is not the currently stored intersection object
+            if ( intersects[ 0 ].object !== INTERSECTED )
+            {
+                // restore previous intersection object (if it exists) to its original color
+                if ( INTERSECTED )
+                    boxExitTransform();
+
+                // store reference to closest object as current intersection object
+                INTERSECTED = intersects[ 0 ].object;
+                boxEnterTransform();
+
+
+            }
+        }
+        else // there are no intersections
+        {
+            // restore previous intersection object (if it exists) to its original color
+            if ( INTERSECTED )
+                boxExitTransform();
+            // remove previous intersection object reference
+            //     by setting current intersection object to "nothing"
+            INTERSECTED = null;
+        }
+    }
+
+    function boxEnterTransform() {
+        new TWEEN.Tween(INTERSECTED.position)
+            .to({z: 40}, 700)
+            .easing(TWEEN.Easing.Bounce.Out)
+            .start();
+    }
+
+    function boxExitTransform() {
+        new TWEEN.Tween(INTERSECTED.position)
+            .to({z: 0}, 600)
+            .easing(TWEEN.Easing.Bounce.In)
+            .start();
+    }
+
+    function onDocumentMouseDown( event ) {
+
+        event.preventDefault();
+
+        mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+
+        raycaster.setFromCamera( mouse, camera );
+
+
+        var intersects = raycaster.intersectObjects( objects );
+
+        if ( intersects.length > 0 ) {
+
+            window.open(intersects[0].object.userData.URL);
+
+        }
+
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        TWEEN.update();
+        render();
+        stats.update();
+        controls.update();
+    }
+
+    function render() {
+
+        camera.lookAt( scene.position );
+
+        renderer.render( scene, camera );
+    }
+
+</script>
+
+</body>
+</html>

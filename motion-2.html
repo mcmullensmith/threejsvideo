@@ -1,0 +1,472 @@
+<html>
+<head>
+    <title>ThreeJS Video Experiment</title>
+
+    <style>
+        body {
+            background-color: #cccccc;
+            color: #fff;
+            margin: 0px;
+            overflow: hidden;
+            font-family:Monospace;
+            font-size:13px;
+            text-align:center;
+            font-weight: bold;
+            text-align:center;
+            background-image:url(images/space.png);
+        }
+
+        canvas{
+            background: none;
+        }
+
+        video{
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div id="container">
+
+</div>
+
+<video id="videoA" autoplay loop webkit-playsinline style="display:none" width="720" height="810"> -->
+
+</video>
+
+<script src="js/libs/motionstack-v1.0.1.js"></script>
+<script src="js/three.min.js" type="text/javascript"></script>
+
+<!--<script src="js/libs/physi.js"></script>-->
+
+<script src="js/libs/stats.min.js"></script>
+<script src="js/libs/dat.gui.min.js"></script>
+<script src="js/crossfade/scenes.js"></script>
+<script src="js/crossfade/gui.js"></script>
+<script src="js/crossfade/transition.js"></script>
+
+<script src="js/shaders/ConvolutionShader.js"></script>
+<script src="js/shaders/CopyShader.js"></script>
+<script src="js/shaders/DotScreenShader.js"></script>
+<script src="js/shaders/FilmShader.js"></script>
+<script src="js/shaders/DigitalGlitch.js"></script>
+
+<script src="js/postprocessing/EffectComposer.js"></script>
+<script src="js/postprocessing/RenderPass.js"></script>
+<script src="js/postprocessing/MaskPass.js"></script>
+<script src="js/postprocessing/BloomPass.js"></script>
+<script src="js/postprocessing/ShaderPass.js"></script>
+<script src="js/postprocessing/DotScreenPass.js"></script>
+<script src="js/postprocessing/FilmPass.js"></script>
+<script src="js/postprocessing/GlitchPass.js"></script>
+
+<script src="js/postprocessing/ClearPass.js"></script>
+<script src="js/postprocessing/TexturePass.js"></script>
+<script src="js/postprocessing/ShaderPass.js"></script>
+<script src="js/postprocessing/MaskPass.js"></script>
+
+<script type="text/javascript">
+
+    (function(){
+
+
+    var container;
+    var camera, sceneA, sceneC, renderer, crate;
+    var videoA, videoB, textureA, textureB, material, mesh;
+    var composer;
+    var mouseX = 0;
+    var mouseY = 0;
+//    var windowHalfX = window.innerWidth / 2;
+//    var windowHalfY = window.innerHeight / 2;
+    var clock = new THREE.Clock();
+
+    var mouseDown = false;
+    var rotateStartPoint = new THREE.Vector3(0, 0, 1);
+    var rotateEndPoint = new THREE.Vector3(0, 0, 1);
+
+    var curQuaternion;
+    var windowHalfX = window.innerWidth / 2;
+    var windowHalfY = window.innerHeight / 2;
+    var rotationSpeed = 2;
+    var lastMoveTimestamp,
+        moveReleaseTimeDelta = 50;
+
+    var startPoint = {
+        x: 0,
+        y: 0
+    };
+
+    var drag = 0.95;
+    var minDelta = 0.05;
+
+    var deltaX = 0,
+        deltaY = 0;
+
+    init();
+    // animate();
+//    render();
+    function init() {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+
+        sceneA = new THREE.Scene();
+        sceneC = new THREE.Scene();
+
+//        torus = new THREE.Mesh( new THREE.TorusGeometry( 3, 1, 16, 32 ) );
+//        sceneA.add( torus );
+
+        box = new THREE.BoxGeometry(1, 1, 1);
+//        sceneA.add( box );
+
+        var light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(0.5, 1, 1).normalize();
+        sceneA.add(light);
+//        sceneC.add( light );
+
+        window.scene = sceneA;
+
+        window.THREE = THREE;
+
+        renderer = new THREE.WebGLRenderer({antialias: false, alpha: true});
+        renderer.setClearColor(0xffffff, 0);
+        renderer.clearAlpha = true;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        videoA = document.getElementById('videoA');
+        videoA.height = 810;
+        videoA.src = "textures/GearVR-Room-Loop_v2.mp4";
+        videoA.setAttribute('crossorigin', 'anonymous');
+        videoA.load(); // must call after setting/changing source
+        videoA.play();
+
+
+//        textureA = new THREE.VideoTexture( videoA );
+//        textureA.minFilter = THREE.LinearFilter;
+//        textureA.magFilter = THREE.LinearFilter;
+//        textureA.format = THREE.RGBFormat;
+//        var textureA = new THREE.TextureLoader().load( 'images/space.png' );
+
+
+        textureB = new THREE.VideoTexture(videoA);
+        textureB.minFilter = THREE.LinearFilter;
+        textureB.magFilter = THREE.LinearFilter;
+        textureB.format = THREE.RGBFormat;
+
+//        textureB.wrapS = textureB.wrapT = THREE.RepeatWrapping;
+        textureB.wrapS = textureB.wrapT = THREE.ClampToEdgeWrapping;
+
+        var crateMaterial = new THREE.MeshLambertMaterial({map: textureB});
+        crate = new THREE.Mesh(box, crateMaterial);
+        sceneA.add(crate);
+
+
+        var clearPass = new THREE.ClearPass();
+
+        var clearMaskPass = new THREE.ClearMaskPass();
+
+        var maskPass1 = new THREE.MaskPass(sceneA, camera);
+        var maskPass2 = new THREE.MaskPass(sceneC, camera);
+
+//        var texturePass1 = new THREE.TexturePass( textureA );
+        var texturePass2 = new THREE.TexturePass(textureB);
+
+        var outputPass = new THREE.ShaderPass(THREE.CopyShader);
+        outputPass.renderToScreen = true;
+
+        var parameters = {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBFormat,
+            stencilBuffer: true
+        };
+
+        var renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, parameters);
+
+//        composer = new THREE.EffectComposer( renderer, renderTarget );
+//        composer.addPass( clearPass );
+//        composer.addPass( maskPass1 );
+//        composer.addPass( texturePass1 );
+//        composer.addPass( clearMaskPass );
+//        composer.addPass( maskPass2 );
+//        composer.addPass( texturePass2);
+//        composer.addPass( clearMaskPass );
+//        composer.addPass( outputPass );
+
+        camera.position.z = 10;
+
+//        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+        document.addEventListener('mousedown', onDocumentMouseDown, false);
+
+        render();
+    }
+
+
+
+
+    function onDocumentMouseDown(event) {
+        event.preventDefault();
+
+        document.addEventListener('mousemove', onDocumentMouseMove, false);
+        document.addEventListener('mouseup', onDocumentMouseUp, false);
+
+        mouseDown = true;
+
+        startPoint = {
+            x: event.clientX,
+            y: event.clientY
+        };
+
+        rotateStartPoint = rotateEndPoint = projectOnTrackball(0, 0);
+    }
+
+    function onDocumentMouseMove(event) {
+        deltaX = event.x - startPoint.x;
+        deltaY = event.y - startPoint.y;
+
+        handleRotation();
+
+        startPoint.x = event.x;
+        startPoint.y = event.y;
+
+        lastMoveTimestamp = new Date();
+    }
+
+    function onDocumentMouseUp(event) {
+        if (new Date().getTime() - lastMoveTimestamp.getTime() > moveReleaseTimeDelta)
+        {
+            deltaX = event.x - startPoint.x;
+            deltaY = event.y - startPoint.y;
+        }
+
+        mouseDown = false;
+
+        document.removeEventListener('mousemove', onDocumentMouseMove, false);
+        document.removeEventListener('mouseup', onDocumentMouseUp, false);
+    }
+
+
+    function rotateMatrix(rotateStart, rotateEnd) {
+        var axis = new THREE.Vector3(),
+            quaternion = new THREE.Quaternion();
+
+        var angle = Math.acos(rotateStart.dot(rotateEnd) / rotateStart.length() / rotateEnd.length());
+
+        if (angle)
+        {
+            axis.crossVectors(rotateStart, rotateEnd).normalize();
+            angle *= rotationSpeed;
+            quaternion.setFromAxisAngle(axis, angle);
+        }
+        return quaternion;
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    function projectOnTrackball(touchX, touchY) {
+        var mouseOnBall = new THREE.Vector3();
+
+        mouseOnBall.set(
+            clamp(touchX / windowHalfX, -1, 1), clamp(-touchY / windowHalfY, -1, 1),
+            0.0
+        );
+
+        var length = mouseOnBall.length();
+
+        if (length > 1.0)
+        {
+            mouseOnBall.normalize();
+        }
+        else
+        {
+            mouseOnBall.z = Math.sqrt(1.0 - length * length);
+        }
+
+        return mouseOnBall;
+    }
+
+
+//    function animate() {
+    // requestAnimationFrame( animate );
+    // render();
+//    }
+
+//    function onDocumentMouseMove(event) {
+//        event.preventDefault();
+//        mouseX = ( event.clientX - windowHalfX );
+//        mouseY = ( event.clientY - windowHalfY ) * 0.3;
+//    }
+
+//    function tracking(e) {
+//        var q = e.quaternion;
+//        var factor = 1 / Math.max(1E-5, Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z));
+//
+//        angle = 2.0 * Math.acos(q.w) || 0;
+//        x = q.x * factor;
+//        y = -q.y * factor;
+//        z = q.z * factor;
+//    }
+
+    //----------------------
+    // Motion controls
+    //----------------------
+//    var viewQuat = new THREE.Quaternion();
+//    var worldQuat = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+//
+//    // Define motion controls on next browser tick to ensure MotionStack is loaded
+//    window.requestAnimationFrame(function setupMotion() {
+//        var orientation = new MotionStack.Orientation();
+//        console.log('orientation: ' , orientation);
+//        orientation.start(function(e) {
+//            viewQuat.set(
+//                deltaX = e.quaternion.x - startPoint.x;
+//                deltaY = e.quaternion.y - startPoint.y;
+//                e.quaternion.z,
+//                e.quaternion.w
+//            ).premultiply(curQuaternion);
+//        });
+//    });
+
+
+
+    //----------------------
+    // Render loop
+    //----------------------
+//    window.requestAnimationFrame(function renderLoop() {
+//        if (viewQuat) {
+
+//            crate.quaternion.copy(viewQuat);
+//            crate.setRotationFromQuaternion(viewQuat);
+//        }
+//
+//        renderer.render(scene, camera);
+//        requestAnimationFrame(renderLoop);
+//    });
+
+    function handleRotation() {
+        rotateEndPoint = projectOnTrackball(deltaX, deltaY);
+
+        var rotateQuaternion = rotateMatrix(rotateStartPoint, rotateEndPoint);
+        curQuaternion = crate.quaternion;
+        curQuaternion.multiplyQuaternions(rotateQuaternion, curQuaternion);
+        curQuaternion.normalize();
+        crate.setRotationFromQuaternion(curQuaternion);
+
+        rotateEndPoint = rotateStartPoint;
+    }
+
+    function render() {
+
+        if (!mouseDown) {
+
+
+
+            if (deltaX < -minDelta || deltaX > minDelta)
+            {
+                deltaX *= drag;
+            }
+            else
+            {
+                deltaX = 0;
+            }
+
+            if (deltaY < -minDelta || deltaY > minDelta)
+            {
+                deltaY *= drag;
+            }
+            else
+            {
+                deltaY = 0;
+            }
+
+            handleRotation();
+        }
+
+
+
+        var orientation = new MotionStack.Orientation();
+
+        orientation.start(function(e) {
+//            console.log("orientation: ", e);
+            var q = e.quaternion;
+            var factor = 1 / Math.max(1E-5, Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z));
+
+            deltaX = q.x - startPoint.x;
+            deltaY = q.y - startPoint.y;
+
+//            crate.position.y = e.quaternion.x *= (drag * 10);
+//            crate.position.x = e.quaternion.y *= (drag * 10);
+
+            if (deltaX < -minDelta || deltaX > minDelta)
+            {
+                deltaX *= drag;
+            }
+
+            if (deltaY < -minDelta || deltaY > minDelta)
+            {
+                deltaY *= drag;
+            }
+            else
+            {
+                deltaY = 0;
+            }
+
+            handleRotation();
+
+
+        });
+
+
+//        var delta = clock.getDelta ();
+//        var time = performance.now() * 0.001;
+
+//        camera.lookAt( sceneA.position );
+
+//        crate.position.x = x;
+//        crate.position.y =  Math.sin( time / 1.5 ) * 2;
+//        crate.rotation.x = x * angle;
+//        crate.rotation.y = y * angle;
+//        crate.useQuaternion = true;
+//        crate.quaternion.setFromAxisAngle(x, angle);
+//        crate.rotation.z =
+//        var deltaRotationQuaternion = new three.Quaternion()
+//            .setFromEuler(new three.Euler(
+//                toRadians(y * 1),
+//                toRadians(x * 1),
+//                z,
+//               'XYZ'
+//            ));
+//
+//        crate.quaternion.multiplyQuaternions(deltaRotationQuaternion, crate.quaternion);
+
+//        if (viewQuat) {
+//            crate.quaternion.copy(viewQuat);
+//            console.log(viewQuat)
+//        }
+
+//        torus.position.x = Math.cos( time ) * 2;
+//        torus.position.y = Math.sin( time / 1.5 ) * 2;
+//        torus.rotation.x = time;
+//        torus.rotation.y = time / 2;
+
+//        renderer.clear();
+
+//
+        renderer.render( sceneA, camera );
+        requestAnimationFrame( render );
+//        composer.render(delta);
+    }
+
+
+    })();
+</script>
+</body>
+</html>
+d
